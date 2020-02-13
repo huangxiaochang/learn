@@ -252,4 +252,52 @@ f(arg2...)
 
 ```
 
+## new操作符
+
+### 用法
+var obj = new Fn(args)
+
+### 使用new操作符时的内部执行流程
+- 创建一个继承构造函数原型对象prototype的新对象
+- 使用指定的参数调用构造函数，并且绑定的执行上下文为上面新创建的对象
+- 由构造函数返回的对象即为new操作符的运算结果，如果构造函数返回的不是一个对象，即返回上面新创建的对象作为运算的结果。
+
+### 模拟实现
+
+```
+function Fun (name) {
+    this.name = name
+    return null
+}
+
+Fun.prototype.say = function() {
+	console.log(this.name)
+}
+
+var obj = new Fun('hxc')
+console.log(obj)
+
+/*
+@params fn 作为构造函数使用
+@params args 作为构造函数的参数
+*/
+function create (fn, ...args) {
+    // 创建一个继承自构造函数原型的新对象
+    var obj = Object.create(fn.prototype)
+    // var obj = {}
+    // obj.__proto__ = fn.prototype
+    
+    // 新创建的对象作为执行上下文执行构造函数
+    var res = fn.apply(obj, args)
+    
+    // 如果构造函数返回的为一个对象(纯对象，数组，函数等非基本数据类型的值)，则作为new的操作结果，否则使用上面新创建对象作为运算结果
+    if (res !== null && typeof res === 'object' || typeof res === 'function') {
+    	return res
+    } else {
+    	return obj
+    }
+}
+var obj1 = create(Fun, 'hxc')
+console.log(obj1)
+```
 
