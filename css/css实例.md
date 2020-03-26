@@ -575,3 +575,76 @@ gap: 元素和倒影直接的间隙。
 </div>
 ```
 
+## 13. 底部内容自适应
+	当主内容不超出可视区域时，底部固定在可视区域的底部，当主内容超过可视区域时，底部跟随着在主内容的底部。
+```
+<style type="text/css">
+	/* 可视区域 */
+		.container {
+			height: 400px;
+			overflow-y: auto;
+			border: 1px solid #ccc;
+			position: relative;
+			box-sizing: border-box;
+		}
+	/* 主内容 */
+		.main {
+			min-height: 100%;
+			padding-bottom: 50px;
+			box-sizing: border-box;
+		}
+	/* 底部 */
+		.footer {
+			height: 40px;
+			line-height: 40px;
+			background: yellow;
+			margin-top: -40px;
+		}
+    
+</style>
+<div class="container">
+    <div class="main">weqwe
+        webr	<br>webr	<br>webr	<br>webr	<br>webr	<br>
+        webr	<br>webr	<br>webr	<br>webr	<br>webr	<br>
+        webr	<br>webr	<br>webr	<br>webr	<br>webr	<br>
+        webr	<br>webr	<br>webr	<br>webr	<br>webr	<br>
+        webr	<br>webr	<br>webr	<br>webr	<br>webr	<br>
+    </div>
+    <footer class="footer">button</footer>
+</div>
+```
+## 14. 宽高固定比例变化
+	宽度自适应，然后高度随着宽度固定比例进行变化。实现这种效果，利用了padding-top/bottom的百分比的基准是父元素宽度的特点，然后容器的一个子元素设置padding-top/bottom来撑起它的高度，从而实现容器的宽高固定比例。
+
+高度随着宽度固定比例变化。
+```
+<style type="text/css">
+    .container {
+        width: 100%;
+        background: yellow;
+        position: relative;
+    }
+    /* 让container的伪类子元素撑起它的高度 */
+    .container:before {
+        content: '';
+        width: 100%;
+        /* 要设置成块级元素，才能撑起高度 */
+        display: block;
+        height: 0;
+        /* 以container宽度为基准 */
+        padding-bottom: 50%;
+    }
+    .content {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        top: 0;
+    }
+</style>
+<div class="container">
+	<div class="content">123456789</div>
+</div>
+```
+宽度随着高度固定比例变化
+因为现阶段并没有什么属性的比例基准是元素的高度，所以不能像上面那样使用padding-bottom属性来实现，其中一种实现的方式就是通过变异的方法实现，即把高度随着宽度固定比例变化的容器，使用transform: rotate(90deg).即可实现容器的宽度随着高度固定比例变化。但是会产生一个新的问题就是，容器的子元素也会被旋转，所以文字的方向发生了改变。
