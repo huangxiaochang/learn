@@ -4,6 +4,7 @@ JavaScript中的异步编程
 ## 1. async/await.
 1.本质：
 async函数本质上是Generator函数自执行的语法糖。 await语句只能在async函数内部使用。执行async函数时，会立即返回一个promise对象。async函数内部的返回值，会作为async函数返回的promise的then回调onFulled的参数。所以async函数相当于：
+
 ```
 async fun () {
 	return 11;
@@ -11,14 +12,29 @@ async fun () {
 
 // 相当于
 function fun () {
-	// 立即返回一个promise对象
+	// 立即返回一个promise对象，但是该promise对象的状态的resolved,依赖async的返回值。如果返回值是一个promise对象(就已经resolved),那么async函数返回的promise对象状态是pending。否则是resolved.
 	return new Promise(function (resolve, reject) {
-	// async函数内部的返回值，作为async函数返回的promise对象的then回调的参数
+	// async函数内部的返回值，作为async函数返回的promise对象的then回调的参数，
 		resolve(11);
 	})
 }
 
 ```
+```
+async function fn () {
+  var p =  new Promise((resolve, reject) => {
+    console.log(87)
+    resolve(11)
+  })
+  console.log(p, 'ppp')// p的状态为resolved.
+  return p; // 虽然这里返回的是已经resolved的promise，但是async函数返回的promise状态是pending。
+  // return 123// 如果返回的不是一个promise，那么async函数返回的promise状态是resolved
+}
+
+asy = fn();
+console.log(asy, 7777) // asy的状态为pending
+```
+
 2. async函数抛出错误时(内部未被处理的错误，包括await语句后面的promise对象未处理的reject)，async函数返回的promise对象会立即reject。该错误会被async返回的promise对象的catch语句或者then的onRejected回调捕获。
 ```
 async fun () {
@@ -108,7 +124,7 @@ async function async1() {
    async function async2() {
   		console.log('async2');
   		// 这里的返回值是async2返回的promise对象then的参数，因为他是一个promise对象，
-  		// 所以它状态的resolved是在下一次事件循环中
+  		// 所以async2返回的promise对象状态为pending，它会在下一次事件循环中进行resolved
   		return new Promise(function (resolve, reject) {
   			resolve(888)
   		})
@@ -268,5 +284,44 @@ async function async1() {
     	async1 end
      */
 ```
+
+4. async实现的原理:
+  本质上，自动执行generator 对象的next方法。
+```
+function my_async(genFn, ...args) {
+  function spwan(genFn, args) {
+    return new Promise(function (resolve, reject) {
+      const itor = genFn(...args);
+      function step(nextFn) {
+        let ret;
+        try {
+          ret = nextFn();
+        } catch(err) {
+          return reject(err);
+        }
+
+        if (ret.done) {
+          return resolve(ret.value);
+        }
+        // 因为yield的值可能是一个promise对象。所以需要使用Promise.resolve来处理
+        Promise.resolve(ret.value).then(val => {
+          step(function () {
+            return itor.next(val);
+          });
+        }, (err) => {
+          step(function () {
+            return itor.throw(err);
+          })
+        })
+      }
+      step(function () {
+        return itor.nextFn(undefined);
+      });
+    });
+  };
+  return spwan(genFn, args);
+}
+```
+
 
 
