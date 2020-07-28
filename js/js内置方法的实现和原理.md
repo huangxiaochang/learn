@@ -300,4 +300,85 @@ function create (fn, ...args) {
 var obj1 = create(Fun, 'hxc')
 console.log(obj1)
 ```
+# instanceof
+用法： a instanceof b
+其中b要为构造函数，a一般为实例对象，为基本数据类型时，返回false。
+instanceof 的底层原理为判断b.prototype是否在a的原型链上
+
+模拟实现：
+```
+// instanceof的底层原理为判断right_hand.prototype是否在left_hand的原型链上
+function instanceOf (left_hand, right_hand) {
+	if (typeof right_hand !== 'function') {
+		throw new TypeError("Right-hand side of 'instanceof' is not callable");
+	}
+	// 如果左边的操作数为基本数据类型时，直接返回false
+	if (left_hand === null || (typeof left_hand !== 'object' && typeof left_hand !== 'function')) {
+		return false;
+	}
+	leftValue = left_hand.__proto__;
+	rightValue = right_hand.prototype;
+	while (leftValue) {
+		if (leftValue === rightValue) {
+			return true;
+		}
+		leftValue = leftValue.__proto__;
+	}
+	return false;
+}
+```
+
+测试用例：
+```
+function fun () {
+
+}
+
+fn.prototype = new fun();
+
+function fn () {
+
+}
+
+
+var f = new fn();
+
+console.log(1 instanceof Number)
+console.log("1" instanceof String)
+console.log(true instanceof Boolean)
+console.log(Symbol(1) instanceof Object)
+console.log(null instanceof Object)
+console.log(1 instanceof Object)
+console.log("1" instanceof Object)
+
+console.log(new Number(1) instanceof Number)
+console.log(new Number(1) instanceof Object)
+console.log({} instanceof Object)
+console.log(f instanceof fn)
+console.log(f instanceof fun)
+console.log(Object instanceof Object)
+console.log(Function instanceof Function)
+console.log(Function instanceof Object)
+console.log(Object instanceof Function)
+
+console.log('-----------')
+
+console.log(instanceOf(1, Number))
+console.log(instanceOf("1", String))
+console.log(instanceOf(true, Boolean))
+console.log(instanceOf(Symbol(1), Object))
+console.log(instanceOf(null, Object))
+console.log(instanceOf("1", Object))
+console.log(instanceOf(1, Object))
+
+console.log(instanceOf(new Number(1), Number))
+console.log(instanceOf(new Number(1), Object))
+console.log(instanceOf({}, Object))
+console.log(instanceOf(f, fn))
+console.log(instanceOf(f, fun))
+console.log(instanceOf(Object, Object))
+console.log(instanceOf(Function, Function))
+console.log(instanceOf(Function, Object))
+console.log(instanceOf(Object, Function))
+```
 
